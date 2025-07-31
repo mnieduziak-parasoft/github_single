@@ -1,0 +1,73 @@
+
+description = '<h3>Jtest demo project</h3><p>The project contains sample source code with various errors, and bad practice examples which can be detected by Jtest analysis.</p>'
+
+apply plugin: 'java'
+apply plugin: 'maven-publish'
+
+group = theGroup
+version = theVersion
+
+def jtestPluginPath = projectDir.absolutePath + '/../../integration/gradle/jtest.gradle'
+if(file(jtestPluginPath).exists()) {
+    apply from: jtestPluginPath
+} else {
+    logger.warn('The Jtest tasks cannot be executed from the command line. Please verify if the following file is available: \'../../integration/gradle/jtest.gradle\'')
+}
+
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
+
+compileJava.options.encoding = 'UTF-8'
+
+
+test{
+
+    // print short tests summary
+    afterSuite { desc, result ->
+        if (!desc.parent)
+            println("Test results: ${result.successfulTestCount} successes, ${result.failedTestCount} failures, ${result.skippedTestCount} skipped")
+    }
+    useJUnitPlatform()
+
+    // ignore test failures for demo purposes
+    ignoreFailures = true
+
+    // AccountDynamicTest.class is a part of AccountDynamicSuite.class and should not be launched as a separated test
+    exclude '**/nbank/AccountDynamicTest.class'
+    exclude '**/*Test*$*.class'
+}
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+jar {
+    archiveBaseName = theName
+    archiveVersion = ""
+}
+
+dependencies {
+    implementation     'javax.servlet:servlet-api:2.4'
+    testImplementation 'org.hamcrest:hamcrest:2.2'
+    testImplementation 'org.mockito:mockito-junit-jupiter:4.11.0'
+    testImplementation 'org.mockito:mockito-inline:4.11.0'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.9.2'
+    testImplementation 'org.junit.jupiter:junit-jupiter-migrationsupport:5.9.2'
+    testRuntimeOnly    'org.junit.platform:junit-platform-runner:1.9.2'
+    testImplementation 'org.junit.vintage:junit-vintage-engine:5.9.2'
+    testImplementation 'pl.pragmatists:JUnitParams:1.1.1'
+    testImplementation 'net.bytebuddy:byte-buddy:1.15.1'
+}
+
+processResources {
+    from ('src/test/java') {
+        include '**/*.csv'
+    }
+}
